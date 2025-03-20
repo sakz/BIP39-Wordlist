@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIP39单词序号查询</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .bit-table {
+            border-collapse: collapse;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .bit-table th {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .bit-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 20px;
+        }
+        .example {
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BIP39单词序号查询</h1>
+        <div class="input-group">
+            <input type="text" id="wordInput" placeholder="输入单词" />
+            <button onclick="searchWord()">查询</button>
+        </div>
+        <div id="result">
+            <p>单词序号：<span id="wordIndex"></span></p>
+            <p>二进制表示：<span id="binaryRepresentation"></span></p>
+            <table class="bit-table">
+                <tr>
+                    <th>1</th><th>2</th><th>4</th><th>8</th><th>16</th>
+                    <th>32</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th>
+                </tr>
+                <tr id="dotRow">
+                    <td></td><td></td><td></td><td></td><td></td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+            </table>
+        </div>
+        <div class="example">
+            <h3>示例：</h3>
+            <p>• absorb - 序号5 (二进制101) - 在0和2的位置显示点</p>
+            <p>说明：
+                <br>• 点(•)表示该位置有值
+                <br>• 空白表示该位置无值
+                <br>• 序号从0开始计数
+            </p>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top: 20px;">
+        <h2>BIP39完整单词表</h2>
+        <div style="max-height: 600px; overflow-y: auto;">
+            <table class="bit-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>单词</th>
+                        <th>1</th><th>2</th><th>4</th><th>8</th><th>16</th>
+                        <th>32</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th>
+                    </tr>
+                </thead>
+                <tbody id="fullWordList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="wordlist.js"></script>
+    <script>
+
+        function toBinary(decimal) {
+            return (decimal >>> 0).toString(2);
+        }
+
+        function searchWord() {
+            const word = document.getElementById('wordInput').value.toLowerCase();
+            const resultDiv = document.getElementById('result');
+            const wordIndexSpan = document.getElementById('wordIndex');
+            const binarySpan = document.getElementById('binaryRepresentation');
+            const dotRow = document.getElementById('dotRow');
+
+            if (wordList[word]) {
+                const index = wordList[word];
+                const binary = toBinary(index);
+                wordIndexSpan.textContent = index;
+                binarySpan.textContent = binary;
+
+                // 清空所有单元格
+                const cells = dotRow.getElementsByTagName('td');
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].textContent = '';
+                }
+
+                // 设置点
+                const positions = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+                for (let i = 0; i < positions.length; i++) {
+                    if (index & positions[i]) {
+                        cells[i].textContent = '•';
+                    }
+                }
+
+                resultDiv.style.display = 'block';
+            } else {
+                wordIndexSpan.textContent = '未找到';
+                binarySpan.textContent = '';
+                resultDiv.style.display = 'block';
+
+                // 清空所有单元格
+                const cells = dotRow.getElementsByTagName('td');
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].textContent = '';
+                }
+            }
+        }
+
+        // 添加回车键监听
+        document.getElementById('wordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWord();
+            }
+        });
+
+        // 生成完整单词表
+        function generateFullWordList() {
+            const tbody = document.getElementById('fullWordList');
+            const entries = Object.entries(wordList);
+            entries.sort((a, b) => a[1] - b[1]); // 按序号排序
+
+            entries.forEach(([word, index]) => {
+                const row = document.createElement('tr');
+                
+                // 添加序号
+                const indexCell = document.createElement('td');
+                indexCell.textContent = index;
+                row.appendChild(indexCell);
+
+                // 添加单词
+                const wordCell = document.createElement('td');
+                wordCell.textContent = word;
+                row.appendChild(wordCell);
+
+                // 添加二进制点位
+                const positions = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+                positions.forEach(pos => {
+                    const cell = document.createElement('td');
+                    cell.textContent = (index & pos) ? '•' : '';
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // 页面加载完成后生成表格
+        window.addEventListener('load', generateFullWordList);
+    </script>
+</body>
+</html>
