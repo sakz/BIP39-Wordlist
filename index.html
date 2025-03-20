@@ -12,6 +12,43 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-modal.active {
+            display: flex;
+        }
+        .qr-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            max-width: 300px;
+            width: 90%;
+        }
+        .qr-close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #666;
+        }
+        .qr-image {
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+        }
         .bit-button {
             width: 48px;
             height: 48px;
@@ -61,6 +98,51 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .donation-card {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .donation-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .donation-item:hover {
+            background-color: #f9f9f9;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .donation-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .donation-address {
+            flex: 1;
+            font-family: monospace;
+            font-size: 14px;
+            color: #666;
+            word-break: break-all;
+        }
+        .copy-tooltip {
+            position: fixed;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         .input-group {
             margin-bottom: 20px;
@@ -115,34 +197,66 @@
     </style>
 </head>
 <body>
+    <div class="qr-modal" id="qrModal">
+        <div class="qr-modal-content">
+            <span class="qr-close" onclick="closeQRModal()">&times;</span>
+            <h3 id="qrTitle"></h3>
+            <div id="qrCode" class="qr-image"></div>
+        </div>
+    </div>
     <div class="container">
-        <h1>BIP39单词序号查询</h1>
-        <div class="input-group">
-            <input type="text" id="wordInput" placeholder="输入单词" />
-            <button onclick="searchWord()">查询</button>
-        </div>
-        <div id="result">
-            <p>单词序号：<span id="wordIndex"></span></p>
-            <p>二进制表示：<span id="binaryRepresentation"></span></p>
-            <table class="bit-table">
-                <tr>
-                    <th>1</th><th>2</th><th>4</th><th>8</th><th>16</th>
-                    <th>32</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th>
-                </tr>
-                <tr id="dotRow">
-                    <td></td><td></td><td></td><td></td><td></td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-            </table>
-        </div>
-        <div class="example">
-            <h3>示例：</h3>
-            <p>• absorb - 序号6 (二进制101) - 在0和2的位置显示点</p>
-            <p>说明：
-                <br>• 点(•)表示该位置有值
-                <br>• 空白表示该位置无值
-                <br>• 序号从0开始计数
-            </p>
+        <div class="container">
+            <h1>BIP39单词序号查询</h1>
+            <div class="input-group">
+                <input type="text" id="wordInput" placeholder="输入单词" />
+                <button onclick="searchWord()">查询</button>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div id="result">
+                        <p>单词序号：<span id="wordIndex"></span></p>
+                        <p>二进制表示：<span id="binaryRepresentation"></span></p>
+                        <table class="bit-table">
+                            <tr>
+                                <th>1</th><th>2</th><th>4</th><th>8</th><th>16</th>
+                                <th>32</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th>
+                            </tr>
+                            <tr id="dotRow">
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="example">
+                        <h3>示例：</h3>
+                        <p>• absorb - 序号6 (二进制101) - 在0和2的位置显示点</p>
+                        <p>说明：
+                            <br>• 点(•)表示该位置有值
+                            <br>• 空白表示该位置无值
+                            <br>• 序号从0开始计数
+                        </p>
+                    </div>
+                </div>
+                <div class="donation-card" style="width: 300px; margin-top: 0;">
+                    <h3 style="margin-top: 0;">赞赏支持</h3>
+                    <div class="donation-item" onclick="copyAddress('btc')" data-address="bc1qu4qvlgtg0w98692t22ydp7fc4jecdvg0jzwyfn">
+                        <svg class="donation-icon" viewBox="0 0 24 24">
+                            <path fill="#F7931A" d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v-.002zm-6.35-4.613c.24-1.59-.974-2.45-2.64-3.03l.54-2.153-1.315-.328-.525 2.107c-.345-.087-.705-.167-1.064-.25l.526-2.127-1.32-.33-.54 2.165c-.285-.067-.565-.132-.84-.2l-1.815-.45-.35 1.407s.974.225.955.236c.535.136.63.486.615.766l-1.477 5.92c-.075.166-.24.406-.614.314.015.02-.96-.24-.96-.24l-.66 1.51 1.71.426.93.236-.54 2.19 1.32.327.54-2.17c.36.1.705.19 1.05.273l-.51 2.154 1.32.33.545-2.19c2.24.427 3.93.257 4.64-1.774.57-1.637-.03-2.58-1.217-3.196.854-.193 1.5-.76 1.68-1.93h.01zm-3.01 4.22c-.404 1.64-3.157.75-4.05.53l.72-2.9c.896.23 3.757.67 3.33 2.37zm.41-4.24c-.37 1.49-2.662.735-3.405.55l.654-2.64c.744.18 3.137.524 2.75 2.084v.006z"/>
+                        </svg>
+                        <span class="donation-address">bc1qu4qvlgtg0w98692t22ydp7fc4jecdvg0jzwyfn</span>
+                    </div>
+                    <div class="donation-item" onclick="copyAddress('eth')" data-address="0xed9e92F984678F67ab0CC75D91C1513B472ddd4A">
+                        <svg class="donation-icon" viewBox="0 0 24 24">
+                            <path fill="#627EEA" d="M11.944 17.97L4.58 13.62 11.943 24l7.37-10.38-7.372 4.35h.003zM12.056 0L4.69 12.223l7.365 4.354 7.365-4.35L12.056 0z"/>
+                        </svg>
+                        <span class="donation-address">0xed9e92F984678F67ab0CC75D91C1513B472ddd4A</span>
+                    </div>
+                    <div class="donation-item" onclick="copyAddress('trx')" data-address="TJJ2KNRA5b6Fj6S1fRiduVSik3W5xste8y">
+                        <span style="font-weight: bold; margin-right: 10px; color: #EF0027;">TRX</span>
+                        <span class="donation-address">TJJ2KNRA5b6Fj6S1fRiduVSik3W5xste8y</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -322,11 +436,108 @@
 </body>
 </html>
 
-// 重置所有二进制位按钮
-function resetBitButtons() {
-    selectedBits.clear();
-    document.querySelectorAll('.bit-button').forEach(button => {
-        button.classList.remove('active');
+<script>
+    // 引入QRCode.js库
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    document.head.appendChild(script);
+
+    // 等待QRCode.js加载完成后初始化二维码
+    script.onload = function() {
+        const addresses = {
+            btc: 'bc1qu4qvlgtg0w98692t22ydp7fc4jecdvg0jzwyfn',
+            eth: '0xed9e92F984678F67ab0CC75D91C1513B472ddd4A',
+            trx: 'TJJ2KNRA5b6Fj6S1fRiduVSik3W5xste8y'
+        };
+
+        const qrImages = {};
+        
+        // 为每个地址生成二维码
+        Object.entries(addresses).forEach(([type, address]) => {
+            const canvas = document.createElement('canvas');
+            QRCode.toCanvas(canvas, address, {
+                width: 200,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            });
+            qrImages[type] = canvas.toDataURL('image/png');
+        });
+
+        // 更新showQRCode函数
+        window.showQRCode = function(type, address) {
+            const modal = document.getElementById('qrModal');
+            const qrCode = document.getElementById('qrCode');
+            const qrTitle = document.getElementById('qrTitle');
+            
+            const titles = {
+                btc: 'Bitcoin 收款地址',
+                eth: 'Ethereum 收款地址',
+                trx: 'Tron 收款地址'
+            };
+            qrTitle.textContent = titles[type];
+            
+            qrCode.innerHTML = `<img src="${qrImages[type]}" alt="${type} QR Code" style="width: 100%; height: 100%;">`;
+            modal.classList.add('active');
+        };
+    };
+
+    function copyAddress(type) {
+        const item = document.querySelector(`[data-address][onclick*="${type}"]`);
+        const address = item.dataset.address;
+        navigator.clipboard.writeText(address).then(() => {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'copy-tooltip';
+            tooltip.textContent = '复制成功';
+            document.body.appendChild(tooltip);
+            
+            const rect = item.getBoundingClientRect();
+            tooltip.style.left = rect.right + 10 + 'px';
+            tooltip.style.top = rect.top + (rect.height - tooltip.offsetHeight) / 2 + 'px';
+            tooltip.style.opacity = '1';
+            
+            setTimeout(() => {
+                tooltip.style.opacity = '0';
+                setTimeout(() => tooltip.remove(), 300);
+            }, 1500);
+        });
+
+        // 显示二维码
+        showQRCode(type, address);
+    }
+
+    function showQRCode(type, address) {
+        const modal = document.getElementById('qrModal');
+        const qrCode = document.getElementById('qrCode');
+        const qrTitle = document.getElementById('qrTitle');
+        
+        // 设置标题
+        const titles = {
+            btc: 'Bitcoin 收款地址',
+            eth: 'Ethereum 收款地址',
+            trx: 'Tron 收款地址'
+        };
+        qrTitle.textContent = titles[type];
+        
+        // 设置二维码图片
+        qrCode.innerHTML = `<img src="${qrImages[type]}" alt="${type} QR Code" style="width: 100%; height: 100%;">`;
+        
+        // 显示模态框
+        modal.classList.add('active');
+    }
+
+    function closeQRModal() {
+        const modal = document.getElementById('qrModal');
+        modal.classList.remove('active');
+    }
+
+    // 点击模态框背景关闭
+    document.getElementById('qrModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeQRModal();
+        }
     });
-    document.getElementById('matchedWordsList').innerHTML = '';
-}
+
+</script>
