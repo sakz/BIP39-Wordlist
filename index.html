@@ -12,6 +12,50 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+        .bit-button {
+            width: 48px;
+            height: 48px;
+            margin: 6px;
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4CAF50;
+            position: relative;
+            overflow: hidden;
+        }
+        .bit-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        .bit-button.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #388E3C;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .bit-buttons-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 10px;
+        }
+        .matched-words {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
         .container {
             background-color: white;
             padding: 20px;
@@ -103,6 +147,30 @@
     </div>
 
     <div class="container" style="margin-top: 20px;">
+        <h2>BIP39单词恢复</h2>
+        <div class="bit-buttons-container">
+            <button class="bit-button" data-value="1">1</button>
+            <button class="bit-button" data-value="2">2</button>
+            <button class="bit-button" data-value="4">4</button>
+            <button class="bit-button" data-value="8">8</button>
+            <button class="bit-button" data-value="16">16</button>
+            <button class="bit-button" data-value="32">32</button>
+            <button class="bit-button" data-value="64">64</button>
+            <button class="bit-button" data-value="128">128</button>
+            <button class="bit-button" data-value="256">256</button>
+            <button class="bit-button" data-value="512">512</button>
+            <button class="bit-button" data-value="1024">1024</button>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+            <button onclick="resetBitButtons()" style="background-color: #f44336;">重置</button>
+        </div>
+        <div class="matched-words">
+            <h3>匹配的单词：</h3>
+            <div id="matchedWordsList"></div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top: 20px;">
         <h2>BIP39完整单词表</h2>
         <div style="max-height: 600px; overflow-y: auto;">
             <table class="bit-table">
@@ -121,6 +189,49 @@
 
     <script src="wordlist.js"></script>
     <script>
+        // 用于存储当前选中的位值
+        let selectedBits = new Set();
+
+        // 为所有二进制位按钮添加点击事件
+        document.querySelectorAll('.bit-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const value = parseInt(this.dataset.value);
+                if (selectedBits.has(value)) {
+                    selectedBits.delete(value);
+                    this.classList.remove('active');
+                } else {
+                    selectedBits.add(value);
+                    this.classList.add('active');
+                }
+                findMatchingWords();
+            });
+        });
+
+        // 查找匹配的单词
+        function findMatchingWords() {
+            const targetSum = Array.from(selectedBits).reduce((sum, bit) => sum + bit, 0);
+            const matchedWords = Object.entries(wordList)
+                .filter(([_, index]) => index === targetSum)
+                .map(([word]) => word);
+
+            const matchedWordsDiv = document.getElementById('matchedWordsList');
+            if (matchedWords.length > 0) {
+                matchedWordsDiv.innerHTML = matchedWords.map(word => 
+                    `<p style="margin: 5px 0;">${word} (序号: ${wordList[word]})</p>`
+                ).join('');
+            } else {
+                matchedWordsDiv.innerHTML = '<p>没有找到匹配的单词</p>';
+            }
+        }
+
+        // 重置所有二进制位按钮
+        function resetBitButtons() {
+            selectedBits.clear();
+            document.querySelectorAll('.bit-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.getElementById('matchedWordsList').innerHTML = '';
+        }
 
         function toBinary(decimal) {
             return (decimal >>> 0).toString(2);
@@ -210,3 +321,12 @@
     </script>
 </body>
 </html>
+
+// 重置所有二进制位按钮
+function resetBitButtons() {
+    selectedBits.clear();
+    document.querySelectorAll('.bit-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    document.getElementById('matchedWordsList').innerHTML = '';
+}
