@@ -194,6 +194,18 @@
             margin-top: 20px;
             color: #666;
         }
+        .bit-table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f2f2f2;
+            z-index: 10;
+        }
+        
+        /* 确保表头在滚动时不会被遮挡 */
+        .bit-table thead {
+            position: sticky;
+            top: 0;
+        }
     </style>
 </head>
 <body>
