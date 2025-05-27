@@ -1,1 +1,1 @@
-https://seemzx.github.io/BIP39-Wordlist/
+https://sakz.github.io/BIP39-Wordlist/
