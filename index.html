@@ -352,14 +352,15 @@
         }
 
         function searchWord() {
-            const word = document.getElementById('wordInput').value.toLowerCase();
+            const input = document.getElementById('wordInput').value.trim().toLowerCase();
             const resultDiv = document.getElementById('result');
             const wordIndexSpan = document.getElementById('wordIndex');
             const binarySpan = document.getElementById('binaryRepresentation');
             const dotRow = document.getElementById('dotRow');
 
-            if (wordList[word]) {
-                const index = wordList[word];
+            // 先尝试精确匹配
+            if (wordList[input] !== undefined) {
+                const index = wordList[input];
                 const binary = toBinary(index);
                 wordIndexSpan.textContent = index;
                 binarySpan.textContent = binary;
@@ -379,16 +380,47 @@
                 }
 
                 resultDiv.style.display = 'block';
-            } else {
-                wordIndexSpan.textContent = '未找到';
-                binarySpan.textContent = '';
-                resultDiv.style.display = 'block';
+                return;
+            }
 
-                // 清空所有单元格
-                const cells = dotRow.getElementsByTagName('td');
-                for (let i = 0; i < cells.length; i++) {
-                    cells[i].textContent = '';
+            // 如果输入长度>=4，尝试唯一前缀匹配
+            if (input.length >= 4) {
+                const matches = Object.keys(wordList).filter(word => word.startsWith(input));
+                if (matches.length === 1) {
+                    const word = matches[0];
+                    const index = wordList[word];
+                    const binary = toBinary(index);
+                    wordIndexSpan.textContent = index + `（${word}）`;
+                    binarySpan.textContent = binary;
+
+                    // 清空所有单元格
+                    const cells = dotRow.getElementsByTagName('td');
+                    for (let i = 0; i < cells.length; i++) {
+                        cells[i].textContent = '';
+                    }
+
+                    // 设置点
+                    const positions = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+                    for (let i = 0; i < positions.length; i++) {
+                        if (index & positions[i]) {
+                            cells[i].textContent = '•';
+                        }
+                    }
+
+                    resultDiv.style.display = 'block';
+                    return;
                 }
+            }
+
+            // 未找到
+            wordIndexSpan.textContent = '未找到';
+            binarySpan.textContent = '';
+            resultDiv.style.display = 'block';
+
+            // 清空所有单元格
+            const cells = dotRow.getElementsByTagName('td');
+            for (let i = 0; i < cells.length; i++) {
+                cells[i].textContent = '';
             }
         }
 
