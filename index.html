@@ -355,7 +355,7 @@
             if (wordList[input] !== undefined) {
                 const index = wordList[input];
                 const binary = toBinary(index);
-                wordIndexSpan.textContent = index;
+                wordIndexSpan.textContent = index + `（${input}）`;  // 添加单词显示
                 binarySpan.textContent = binary;
 
                 // 清空所有单元格
@@ -416,6 +416,15 @@
                 cells[i].textContent = '';
             }
         }
+
+        // 修改输入框监听，实现自动搜索
+        document.getElementById('wordInput').addEventListener('input', function(e) {
+            if (this.value.trim().length >= 4) {
+                searchWord();
+            } else {
+                document.getElementById('result').style.display = 'none';
+            }
+        });
 
         // 添加回车键监听
         document.getElementById('wordInput').addEventListener('keypress', function(e) {
